@@ -1,5 +1,5 @@
 import pandas as pd
-from MarketMakerV1 import Trader
+from MarketMaking import Trader
 from datamodel import OrderDepth, TradingState
 from collections import defaultdict
 
