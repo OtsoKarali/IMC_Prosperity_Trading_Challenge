@@ -1,0 +1,77 @@
+{
+    "KELP": {
+        "trading_metrics": {
+            "total_trades": 2580,
+            "total_volume": 6931.0,
+            "avg_trade_size": 2.686434108527132,
+            "max_position": 50.0,
+            "min_position": -50.0,
+            "avg_position": 23.942494249424943,
+            "position_stdev": 11.170539360714136,
+            "price_mean": 2034.6448320413435,
+            "price_std": 2.4455677032878262,
+            "trade_intervals": 387.6308646762311,
+            "profitable_trades": 947,
+            "unprofitable_trades": 1633
+        },
+        "market_metrics": {
+            "avg_spread": 2.7292,
+            "max_spread": 4.0,
+            "min_spread": 1.0,
+            "avg_market_depth": {
+                "bid": 26.905,
+                "ask": 26.8628
+            }
+        }
+    },
+    "SQUID_INK": {
+        "trading_metrics": {
+            "total_trades": 3357,
+            "total_volume": 35502.0,
+            "avg_trade_size": 10.575513851653263,
+            "max_position": 50.0,
+            "min_position": -50.0,
+            "avg_position": 0.1265253050610122,
+            "position_stdev": 40.19928219801543,
+            "price_mean": 1908.85388180766,
+            "price_std": 42.621487933250116,
+            "trade_intervals": 297.8843861740167,
+            "profitable_trades": 1644,
+            "unprofitable_trades": 1713
+        },
+        "market_metrics": {
+            "avg_spread": 2.6187,
+            "max_spread": 4.0,
+            "min_spread": 1.0,
+            "avg_market_depth": {
+                "bid": 26.8908,
+                "ask": 26.8407
+            }
+        }
+    },
+    "RAINFOREST_RESIN": {
+        "trading_metrics": {
+            "total_trades": 1891,
+            "total_volume": 5076.0,
+            "avg_trade_size": 2.6842940243257534,
+            "max_position": 48.0,
+            "min_position": -50.0,
+            "avg_position": -5.922476743022907,
+            "position_stdev": 19.504334379091556,
+            "price_mean": 9999.983870967742,
+            "price_std": 1.8689709665687282,
+            "trade_intervals": 528.4126984126984,
+            "profitable_trades": 955,
+            "unprofitable_trades": 936
+        },
+        "market_metrics": {
+            "avg_spread": 6.7767,
+            "max_spread": 10.0,
+            "min_spread": 2.0,
+            "avg_market_depth": {
+                "bid": 26.8224,
+                "ask": 26.821
+            }
+        }
+    }
+}

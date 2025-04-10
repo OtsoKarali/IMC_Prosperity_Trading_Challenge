@@ -11,6 +11,8 @@ class Trader:
         self.volatility = {}
         self.cost_basis = {}
         self.realized_pnl = {}
+        self.metrics = {}
+        self.order_size_default = 15
 
     def update_price_history(self, product: str, mid_price: float):
         if product not in self.price_history:
@@ -31,28 +33,10 @@ class Trader:
     def get_fair_value(self, product: str, current_mid: float) -> float:
         if product not in self.price_history:
             return current_mid
-
         return statistics.median(self.price_history[product])
 
-    def update_cost_basis_and_pnl(self, product: str, price: float, qty: int, pos: int):
-        if qty == 0:
-            return
-
-        if product not in self.cost_basis:
-            self.cost_basis[product] = 0.0
-            self.realized_pnl[product] = 0.0
-
-        old_pos = pos - qty
-        if old_pos == 0:
-            self.cost_basis[product] = price
-        elif (old_pos > 0 and qty > 0) or (old_pos < 0 and qty < 0):
-            total_cost = self.cost_basis[product] * abs(old_pos) + price * abs(qty)
-            self.cost_basis[product] = total_cost / abs(pos)
-        else:
-            realized = qty * (price - self.cost_basis[product])
-            self.realized_pnl[product] += realized
-            if pos == 0:
-                self.cost_basis[product] = 0.0
+    def configure_from_metrics(self, external_metrics: Dict[str, Dict]):
+        self.metrics = external_metrics
 
     def run(self, state: TradingState):
         result = {}
@@ -65,45 +49,48 @@ class Trader:
             "SQUID_INK": 50
         }
 
-        order_size = 30
         for product, order_depth in state.order_depths.items():
             orders: List[Order] = []
+            metrics = self.metrics.get(product, {
+                "mode": "adaptive",
+                "spread_threshold": 0.5
+            })
+
+            pos = state.position.get(product, 0)
+            limit = position_limits[product]
+            mode = metrics.get("mode", "adaptive")
+            spread_threshold = metrics.get("spread_threshold", 0.5)
 
             if order_depth.buy_orders and order_depth.sell_orders:
-                best_bid = max(order_depth.buy_orders.keys())
-                best_ask = min(order_depth.sell_orders.keys())
+                best_bid = max(order_depth.buy_orders)
+                best_ask = min(order_depth.sell_orders)
                 spread = best_ask - best_bid
                 mid_price = (best_bid + best_ask) / 2
 
                 self.update_price_history(product, mid_price)
                 fair_value = self.get_fair_value(product, mid_price)
-
-                pos = state.position.get(product, 0)
-                limit = position_limits[product]
-                pos_bias = pos / limit
-                price_distance = (fair_value - mid_price) / fair_value
-                volatility = self.volatility.get(product, 1.0)
-
-                buy_price = int(fair_value - 2)
-                sell_price = int(fair_value + 2)
+                price_diff = fair_value - mid_price
 
                 bid_volume = abs(order_depth.buy_orders.get(best_bid, 0))
                 ask_volume = abs(order_depth.sell_orders.get(best_ask, 0))
-                market_volume = (bid_volume + ask_volume) / 2
+                market_volume = max((bid_volume + ask_volume) // 2, 1)
 
-                size_adjust = min(order_size, max(4, int(market_volume * 0.6)))
-                conf_factor = min(1.5, abs(price_distance) * 300)
-                position_factor = max(0.25, 1.0 - abs(pos_bias) * 0.75)
-                adjusted_size = int(size_adjust * conf_factor * position_factor)
-                adjusted_size = max(2, adjusted_size)
+                size = min(self.order_size_default * 2, int(market_volume * 0.6))
+                size = max(1, size)
 
-                max_buy = min(adjusted_size, limit - pos)
-                max_sell = min(adjusted_size, limit + pos)
+                max_buy = min(size, limit - pos)
+                max_sell = min(size, limit + pos)
 
-                if pos < limit:
-                    orders.append(Order(product, buy_price, max_buy))
-                if pos > -limit:
-                    orders.append(Order(product, sell_price, -max_sell))
+                if abs(price_diff) > spread_threshold:
+                    if price_diff > 0 and pos < limit:
+                        orders.append(Order(product, best_ask, max_buy))
+                    elif price_diff < 0 and pos > -limit:
+                        orders.append(Order(product, best_bid, -max_sell))
+                else:
+                    if pos < limit:
+                        orders.append(Order(product, best_bid, max_buy))
+                    if pos > -limit:
+                        orders.append(Order(product, best_ask, -max_sell))
 
             result[product] = orders
 
