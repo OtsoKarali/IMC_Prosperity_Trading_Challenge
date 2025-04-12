@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from SuperDuperMarketMaker import Trader
+from MarketMaking import Trader
 from datamodel import OrderDepth, TradingState, Order
 from collections import defaultdict
 import sys
